@@ -5,11 +5,14 @@ import { DummyNode } from "src/app/tr-classes/petri-net/dummyNode";
 
 import { LayeredGraph } from "src/app/tr-services/sugyiama/types";
 
+// export type mapping = (string | number[])[][][];
+export type mapping = [string, (0|1)[]][][];
+
 export class CoordinateAssignmentService {
     // Initial set of nodes and arcs
     private _arcs: Arc[] = [];
     private _nodes: Node[] = [];
-    private _layers: LayeredGraph = [];
+    private _graphMap: mapping = [];
 
     // Default values to ensure a pleasing layout
     // TODO: maybe move these to the position constants?
@@ -23,13 +26,15 @@ export class CoordinateAssignmentService {
     private _minRowHeight = 50;
 
     constructor(
-        layers: LayeredGraph,
+        graphMap: mapping,
         arcs: Arc[],
         nodes: Node[]
     ) {
-        this._layers = layers;
+        this._graphMap = graphMap;
         this._arcs = arcs;
         this._nodes = nodes;
+
+        console.log(this._nodes);
     }
     
     assignCoordinates() {
@@ -38,38 +43,72 @@ export class CoordinateAssignmentService {
 
         // Calculate spacings between nodes from the max values set above
         // and the number of nodes and layers in the graph
-        const columns = this._layers.length;
+        const columns = this._graphMap.length;
         const columnSize = Math.max(Math.min((this._canvasWidth/columns), this._maxColumnWidth), this._minColumnWidth);
-        const maxRows = Math.max(...(this._layers.map((layer) => layer.length)));
+        const maxRows = Math.max(...(this._graphMap.map((layer) => layer.length)));
         const rowSize = Math.max(Math.min((this._canvasHeight/maxRows), this._maxRowHeight), this._minRowHeight);
 
         // remove all anchorpoints as these will have to be re-calculated
         this.clearArcAnchorpoints();
 
         // lay out each layer of the graph
-        for (const [layerId, layer] of this._layers.entries()) {
+
+        for (let i = 0; i < this._graphMap.length; i++) {
             // calculate the x position from the layer the node is in
-            const column = layerId + 1; // the layers are zero-indexed so we'll always add 1
+            const column = i + 1; // the layers are zero-indexed so we'll always add 1
             currentX = (columnSize * column) - columnSize/2 ;
 
             // calculate the initial y position from the max number of nodes in the layer
             // this will be incremented for each node in the layer
-            currentY = this._canvasHeight/2 - (rowSize * (layer.length - 1)/2);
+            currentY = this._canvasHeight/2 - (rowSize * (this._graphMap[i].length - 1)/2);
 
-            for (const node of layer) {
-                const position = new Point(currentX, currentY);
+            for (const nodeIndex in this._graphMap[i]) {
+                const node = this.findNodeById(this._graphMap[i][nodeIndex][0]);
+                console.log(this._graphMap[i][nodeIndex][0], node);
+                if (node) {
+                    const position = new Point(currentX, currentY);
 
-                if (node instanceof DummyNode) {
-                    this.replaceDummyNode(node, position);
-                    // node.position = position;
-                } else {
-                    node.position = position;
+                    if (node instanceof DummyNode) {
+                        this.replaceDummyNode(node, position);
+                        // node.position = position;
+                    } else {
+                        node.position = position;
+                    }
+
+                    // Update the vertical position
+                    currentY = currentY + rowSize;
                 }
-
-                // Update the vertical position
-                currentY = currentY + rowSize;
             }
         }
+
+
+        // for (const [layerId, layer] of this._layers.entries()) {
+        //     // calculate the x position from the layer the node is in
+        //     const column = layerId + 1; // the layers are zero-indexed so we'll always add 1
+        //     currentX = (columnSize * column) - columnSize/2 ;
+
+        //     // calculate the initial y position from the max number of nodes in the layer
+        //     // this will be incremented for each node in the layer
+        //     currentY = this._canvasHeight/2 - (rowSize * (layer.length - 1)/2);
+
+        //     for (const node of layer) {
+        //         const position = new Point(currentX, currentY);
+
+        //         if (node instanceof DummyNode) {
+        //             this.replaceDummyNode(node, position);
+        //             // node.position = position;
+        //         } else {
+        //             node.position = position;
+        //         }
+
+        //         // Update the vertical position
+        //         currentY = currentY + rowSize;
+        //     }
+        // }
+    }
+
+    findNodeById(id: string) {
+        return this._nodes.find((node) => node.id === id);
     }
 
     clearArcAnchorpoints() {

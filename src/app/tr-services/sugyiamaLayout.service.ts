@@ -51,15 +51,15 @@ export class LayoutService {
         // Sugyiama Step 3: vertex ordering/crossing minimization
         // - Add dummy nodes for "long" arcs
         // - Re-order vertices to reduce crossings between arcs
-        const vertexOrderingService = new VertexOrderingService(layers, this._arcs, this._nodeInputMap, this._nodeOutputMap);
-        vertexOrderingService.orderVertices();
+        const vertexOrderingService = new VertexOrderingService(layers, this._nodes, this._arcs, this._nodeInputMap, this._nodeOutputMap);
+        const graphMap = vertexOrderingService.orderVertices();
 
         // update arcs in the unterlying data-model before redrawing it
         // this is needed to add the dummy arcs added in the previous step
         this.dataService.arcs = this._arcs;
 
         // Sugyiama Step 4: coordinate assignment
-        const coordinateAssignmentService = new CoordinateAssignmentService(layers, this._arcs, this._nodes);
+        const coordinateAssignmentService = new CoordinateAssignmentService(graphMap, this._arcs, this._nodes);
         coordinateAssignmentService.assignCoordinates();
 
     }
