@@ -30,6 +30,7 @@ import { TokenGameService } from 'src/app/tr-services/token-game.service';
 import { MatDialog } from '@angular/material/dialog';
 import { SetActionPopupComponent } from '../set-action-popup/set-action-popup.component';
 import { Node } from "src/app/tr-interfaces/petri-net/node";
+import { PlaceInvariantsService } from 'src/app/tr-services/place-invariants.service';
 
 @Component({
     selector: 'app-petri-net',
@@ -45,11 +46,12 @@ export class PetriNetComponent {
         private fileReaderService: FileReaderService,
         protected dataService: DataService,
         protected exportJsonDataService: ExportJsonDataService,
-        protected pnmlService: PnmlService, 
+        protected pnmlService: PnmlService,
         protected uiService: UiService,
         protected tokenGameService: TokenGameService,
         private matDialog: MatDialog,
-        protected editMoveElementsService: EditMoveElementsService
+        protected editMoveElementsService: EditMoveElementsService,
+        protected placeInvariantsService: PlaceInvariantsService
     ) {
         this.httpClient.get("assets/example.json", { responseType: "text" }).subscribe(data => {
             const [places, transitions, arcs, actions] = parserService.parse(data);
