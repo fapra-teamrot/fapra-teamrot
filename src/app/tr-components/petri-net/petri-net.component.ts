@@ -53,7 +53,7 @@ export class PetriNetComponent {
         protected editMoveElementsService: EditMoveElementsService,
         protected placeInvariantsService: PlaceInvariantsService
     ) {
-        this.httpClient.get("assets/example.json", { responseType: "text" }).subscribe(data => {
+        this.httpClient.get("assets/place-invariants-3.json", { responseType: "text" }).subscribe(data => {
             const [places, transitions, arcs, actions] = parserService.parse(data);
             this.dataService.places = places;
             this.dataService.transitions = transitions;
