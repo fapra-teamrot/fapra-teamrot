@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
+import { DataService } from './data.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PlaceInvariantsService {
+
+    placeIds: string[] = [];
+    transIds: string[] = [];
+    incidenceMatrix: number[][] = [];
+    placeInvariantsMatrix: number[][] = [];
 
     // Incidence Matrices for Testing *************************************
 
@@ -60,10 +66,51 @@ export class PlaceInvariantsService {
 
     // END: Incidence Matrices for Testing ********************************
 
-    constructor() {
+    constructor(private dataService: DataService) {
         //this.placeInvariants(this.testIncidenceMatrix);
-        const result = this.placeInvariants(this.tM1);
-        console.log(result);
+        // this.calculateIncidenceMatrix();
+        // console.log(this.incidenceMatrix);
+        // const result = this.placeInvariants(this.tM1);
+        // console.log(result);
+    }
+
+    calculatePIs() {
+        this.calculateIncidenceMatrix();
+        console.log(this.incidenceMatrix);
+        this.placeInvariantsMatrix = this.placeInvariants(this.incidenceMatrix);
+        console.log(this.placeInvariantsMatrix);
+    }
+
+    calculateIncidenceMatrix() {
+        // Determine placeIds
+        this.dataService.getPlaces().forEach(
+            place => this.placeIds.push(place.id));
+        console.log(this.placeIds);
+
+        // Determine transIds
+        this.dataService.getTransitions().forEach(
+            transition => this.transIds.push(transition.id));
+        console.log(this.transIds);
+
+        const n = this.placeIds.length; // number of rows of incidence matrix
+        const m = this.transIds.length; // number of columns of incidence matrix
+        // Initialize incidence matrix with 0s
+        this.incidenceMatrix = Array.from({ length: n },
+            () => Array.from({ length: m }, () => 0));
+
+        for (let t of this.dataService.getTransitions()) {
+            const colIndex = this.transIds.indexOf(t.id);
+            // pre-arcs give values for output matrix
+            for (let preArc of t.getPreArcs()) {
+                const rowIndex = this.placeIds.indexOf(preArc.from.id);
+                this.incidenceMatrix[rowIndex][colIndex] += preArc.weight; // Note: weight of pre-arcs has negative sign
+            }
+            // post-arcs give values for input matrix
+            for (let postArc of t.getPostArcs()) {
+                const rowIndex = this.placeIds.indexOf(postArc.to.id);
+                this.incidenceMatrix[rowIndex][colIndex] += postArc.weight;
+            }
+        }
     }
 
     placeInvariants(incidenceMatrix: number[][]): number[][] {
