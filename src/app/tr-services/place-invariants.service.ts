@@ -75,8 +75,16 @@ export class PlaceInvariantsService {
     }
 
     calculatePIs() {
+        // Reset
+        this.placeIds = [];
+        this.transIds = [];
+        this.incidenceMatrix= [];
+        this.placeInvariantsMatrix = [];
+
+
         this.calculateIncidenceMatrix();
         console.log(this.incidenceMatrix);
+
         this.placeInvariantsMatrix = this.placeInvariants(this.incidenceMatrix);
         console.log(this.placeInvariantsMatrix);
     }
@@ -161,7 +169,9 @@ export class PlaceInvariantsService {
                     }
                 }
             }
-            // Filter rows where ith element is 0
+            // Filter rows where ith element is 0.
+            // Use an epsilon value instead of exact 0 to account for numerical
+            // inaccuracies.
             const epsilon = 0.00000001
             dMat = dMat.filter(row => Math.abs(row[i]) < epsilon);
             // console.log(dMat);

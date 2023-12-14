@@ -12,8 +12,4 @@ export class PlaceInvariantsComponent {
 
     }
 
-    placeInvariants() {
-        throw new Error('Method not implemented.');
-    }
-
 }
