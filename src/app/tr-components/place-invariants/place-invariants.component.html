@@ -2,8 +2,18 @@
 
 <div class="container">
 
-    <button mat-stroked-button class="tr-button" (click)="placeInvariantsService.calculatePIs()">Place
-        Invariants</button>
+    <button mat-stroked-button
+    class="tr-button"
+    (click)="placeInvariantsService.calculatePIs()">
+        Place Invariants (PIs): Farkas
+    </button>
+
+    <button mat-stroked-button
+    class="tr-button"
+    (click)="placeInvariantsService.removeNonMinimalPIs()"
+    [disabled]="placeInvariantsService.placeInvariantsMatrix.length === 0">
+        Remove Non-Minimal PIs
+    </button>
 
     <table>
         <thead>

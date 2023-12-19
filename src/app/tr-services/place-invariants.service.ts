@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DataService } from './data.service';
+import { SingularValueDecomposition } from 'ml-matrix';
 
 @Injectable({
     providedIn: 'root'
@@ -83,22 +84,26 @@ export class PlaceInvariantsService {
 
 
         this.calculateIncidenceMatrix();
-        console.log(this.incidenceMatrix);
+        // console.log(this.incidenceMatrix);
 
         this.placeInvariantsMatrix = this.placeInvariants(this.incidenceMatrix);
-        console.log(this.placeInvariantsMatrix);
+        // console.log(this.placeInvariantsMatrix);
+    }
+
+    removeNonMinimalPIs() {
+        this.placeInvariantsMatrix = this.calculateMinimalPIs(this.placeInvariantsMatrix, this.incidenceMatrix);
     }
 
     calculateIncidenceMatrix() {
         // Determine placeIds
         this.dataService.getPlaces().forEach(
             place => this.placeIds.push(place.id));
-        console.log(this.placeIds);
+        // console.log(this.placeIds);
 
         // Determine transIds
         this.dataService.getTransitions().forEach(
             transition => this.transIds.push(transition.id));
-        console.log(this.transIds);
+        // console.log(this.transIds);
 
         const n = this.placeIds.length; // number of rows of incidence matrix
         const m = this.transIds.length; // number of columns of incidence matrix
@@ -184,6 +189,45 @@ export class PlaceInvariantsService {
         // return new Array<Array<number>>;
     }
 
+    /**
+     * Calculation of Minimal Support Invariants
+     *
+     * Algorithm from:
+     * Martínez, J., & Silva, M. (1982). A simple and fast algorithm to obtain all invariants of a generalised Petri net. In Application and Theory of Petri Nets: Selected Papers from the First and the Second European Workshop on Application and Theory of Petri Nets Strasbourg, 23.–26. September 1980 Bad Honnef, 28.–30. September 1981 (pp. 301-310). Berlin, Heidelberg: Springer Berlin Heidelberg.
+     *
+     * @param {number[][]} dMat - matrix of place invariants, possibly including non-minimal  support invariants
+     * @param {number[][]} incidenceMatrix - incidence matrix of the petri net
+     * @returns {number[][]} - matrix of minimal support invariants
+    */
+    calculateMinimalPIs(dMat: number[][], incidenceMatrix: number[][]): number[][] {
+        let dMatMin: number[][] = [];
+
+        for (let pInvariant of dMat) {
+
+            // Indices of support places of the invariant
+            let supportIndices = [];
+            for (let i = 0; i < pInvariant.length; i++) {
+                if (pInvariant[i] > 1e-10) {
+                    supportIndices.push(i);
+                }
+            }
+
+            let Mq: number[][] = [];
+            for (let i of supportIndices) {
+                Mq.push(incidenceMatrix[i]);
+            }
+
+            let q = supportIndices.length;
+
+            if (q === this.rank(Mq) + 1) {
+                dMatMin.push(pInvariant);
+            }
+
+        }
+
+        return(dMatMin);
+    }
+
     // Greatest common divisor of two numbers
     private gcd(a: number, b: number): number {
         return b === 0 ? a : this.gcd(b, a % b);
@@ -199,5 +243,11 @@ export class PlaceInvariantsService {
         }
 
         return result;
+    }
+
+    // Rank of a matrix
+    rank(mat: number[][]): number {
+        let svd = new SingularValueDecomposition(mat, {autoTranspose: true});
+        return svd.diagonal.filter(value => value > 1e-10).length;
     }
 }
