@@ -490,7 +490,7 @@ export class PetriNetComponent {
     }
 
     // Transitions
-    dispatchTransitionClick(event: MouseEvent, transition: Transition) {
+    dispatchTransitionClick(event: MouseEvent, transition: Transition, drawingArea: HTMLElement) {
         //Existing Transition is selected as the next Node. Method is called before dispatchSVGClick
         if (this.uiService.button === ButtonState.Blitz) {
             this.nextNode = transition;
@@ -522,6 +522,14 @@ export class PetriNetComponent {
             transition.appendPreArc(newArc);
             this.dataService.getArcs().push(newArc);
         }
+
+        // Set StartNode for Arc
+        if (this.uiService.button === ButtonState.Arc &&
+            !this.startTransition) {
+            this.startTransition = transition;
+            this.dummyArc?.points.push(transition.position);
+            this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
+        }
     }
 
     dispatchTransitionMouseDown(event: MouseEvent, transition: Transition) {
@@ -532,11 +540,11 @@ export class PetriNetComponent {
             this.editMoveElementsService.initializeNodeMove(event, transition);
         }
 
-        // Set StartNode for Arc
-        if (this.uiService.button === ButtonState.Arc) {
-            this.startTransition = transition;
-            this.dummyArc?.points.push(transition.position);
-        }
+        // // Set StartNode for Arc
+        // if (this.uiService.button === ButtonState.Arc) {
+        //     this.startTransition = transition;
+        //     this.dummyArc?.points.push(transition.position);
+        // }
     }
 
     dispatchTransitionMouseUp(event: MouseEvent, transition: Transition) {

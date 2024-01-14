@@ -69,7 +69,7 @@
     <!-- Transitions -->
     <g
         *ngFor="let transition of dataService.getTransitions()"
-        (click)="dispatchTransitionClick($event, transition)"
+        (click)="dispatchTransitionClick($event, transition, drawingArea)"
         (mousedown)="dispatchTransitionMouseDown($event, transition)"
         (mouseup)="dispatchTransitionMouseUp($event, transition)"
     >
