@@ -342,6 +342,14 @@ export class PetriNetComponent {
             }
             this.nextNode = null;
         }
+
+        // Reset for both cancellation or finalization (bubble-up) of arc drawing
+        if (this.uiService.button === ButtonState.Arc &&
+            (this.startPlace && this.startTransition)) {
+            this.startTransition = undefined;
+            this.startPlace = undefined;
+            this.dummyArc.points = [];
+        }
     }
 
     dispatchSVGMouseDown(event: MouseEvent, drawingArea: HTMLElement) {
@@ -368,12 +376,12 @@ export class PetriNetComponent {
             this.dataService.getTransitions().push(transition);
             this.lastNode = transition;
         }
-        if (
-            this.uiService.button === ButtonState.Arc &&
-            this.dummyArc.points.length === 1
-        ) {
-            this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
-        }
+        // if (
+        //     this.uiService.button === ButtonState.Arc &&
+        //     this.dummyArc.points.length === 1
+        // ) {
+        //     this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
+        // }
     }
 
     dispatchSVGMouseMove(event: MouseEvent, drawingArea: HTMLElement) {
@@ -404,12 +412,12 @@ export class PetriNetComponent {
             this.editMoveElementsService.finalizeMove();
         }
 
-        // Reset for both cancellation or finalization (bubble-up) of arc drawing
-        if (this.uiService.button === ButtonState.Arc) {
-            this.startTransition = undefined;
-            this.startPlace = undefined;
-            this.dummyArc.points = [];
-        }
+        // // Reset for both cancellation or finalization (bubble-up) of arc drawing
+        // if (this.uiService.button === ButtonState.Arc) {
+        //     this.startTransition = undefined;
+        //     this.startPlace = undefined;
+        //     this.dummyArc.points = [];
+        // }
 
         // Resed anchorToDelete after both:
         // * A successfull deletion of an anchor: mouse up on the anchor element
@@ -423,7 +431,7 @@ export class PetriNetComponent {
     }
 
     // Places
-    dispatchPlaceClick(event: MouseEvent, place: Place) {
+    dispatchPlaceClick(event: MouseEvent, place: Place, drawingArea: HTMLElement) {
         //Existing Place is selected as the next Node. Method is called before dispatchSVGClick
         if (this.uiService.button === ButtonState.Blitz) {
             this.nextNode = place;
@@ -442,6 +450,15 @@ export class PetriNetComponent {
         if (this.uiService.button === ButtonState.Delete) {
             this.dataService.removePlace(place);
         }
+
+        // Set StartNode for Arc
+        if (this.uiService.button === ButtonState.Arc &&
+            !this.startPlace) {
+        this.startPlace = place;
+        this.dummyArc?.points.push(place.position);
+        this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
+        // this.dummyArc.points.push(place.position);
+        }
     }
 
     dispatchPlaceMouseDown(event: MouseEvent, place: Place) {
@@ -452,11 +469,11 @@ export class PetriNetComponent {
             this.editMoveElementsService.initializeNodeMove(event, place);
         }
 
-        // Set StartNode for Arc
-        if (this.uiService.button === ButtonState.Arc) {
-            this.startPlace = place;
-            this.dummyArc?.points.push(place.position);
-        }
+        // // Set StartNode for Arc
+        // if (this.uiService.button === ButtonState.Arc) {
+        //     this.startPlace = place;
+        //     this.dummyArc?.points.push(place.position);
+        // }
     }
 
     dispatchPlaceMouseUp(event: MouseEvent, place: Place) {
@@ -494,6 +511,17 @@ export class PetriNetComponent {
         if (this.uiService.button === ButtonState.Delete) {
             this.dataService.removeTransition(transition);
         }
+
+        // Draw Arc with Transition as EndNode
+        if (
+            this.startPlace &&
+            !this.isArcExisting(this.startPlace, transition) &&
+            this.uiService.button === ButtonState.Arc
+        ) {
+            const newArc: Arc = new Arc(this.startPlace, transition, 1);
+            transition.appendPreArc(newArc);
+            this.dataService.getArcs().push(newArc);
+        }
     }
 
     dispatchTransitionMouseDown(event: MouseEvent, transition: Transition) {
@@ -512,16 +540,16 @@ export class PetriNetComponent {
     }
 
     dispatchTransitionMouseUp(event: MouseEvent, transition: Transition) {
-        // Draw Arc with Transition as EndNode
-        if (
-            this.startPlace &&
-            !this.isArcExisting(this.startPlace, transition) &&
-            this.uiService.button === ButtonState.Arc
-        ) {
-            const newArc: Arc = new Arc(this.startPlace, transition, 1);
-            transition.appendPreArc(newArc);
-            this.dataService.getArcs().push(newArc);
-        }
+        // // Draw Arc with Transition as EndNode
+        // if (
+        //     this.startPlace &&
+        //     !this.isArcExisting(this.startPlace, transition) &&
+        //     this.uiService.button === ButtonState.Arc
+        // ) {
+        //     const newArc: Arc = new Arc(this.startPlace, transition, 1);
+        //     transition.appendPreArc(newArc);
+        //     this.dataService.getArcs().push(newArc);
+        // }
     }
 
     // Arcs

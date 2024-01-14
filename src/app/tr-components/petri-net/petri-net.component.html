@@ -31,7 +31,7 @@
     <!-- Places -->
     <g
         *ngFor="let place of dataService.getPlaces()"
-        (click)="dispatchPlaceClick($event, place)"
+        (click)="dispatchPlaceClick($event, place, drawingArea)"
         (mousedown)="dispatchPlaceMouseDown($event, place)"
         (mouseup)="dispatchPlaceMouseUp($event, place)"
         (wheel)="onWheelEventPlace($event, place)"
