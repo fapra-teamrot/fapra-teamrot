@@ -345,7 +345,7 @@ export class PetriNetComponent {
 
         // Reset for both cancellation or finalization (bubble-up) of arc drawing
         if (this.uiService.button === ButtonState.Arc &&
-            (this.startPlace && this.startTransition)) {
+            (this.startPlace || this.startTransition)) {
             this.startTransition = undefined;
             this.startPlace = undefined;
             this.dummyArc.points = [];
@@ -453,11 +453,24 @@ export class PetriNetComponent {
 
         // Set StartNode for Arc
         if (this.uiService.button === ButtonState.Arc &&
-            !this.startPlace) {
+            !this.startPlace &&
+            !this.startTransition) {
         this.startPlace = place;
         this.dummyArc?.points.push(place.position);
         this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
         // this.dummyArc.points.push(place.position);
+        event.stopPropagation();
+        }
+
+        // Draw Arc with Place as EndNode
+        if (
+            this.startTransition &&
+            !this.isArcExisting(this.startTransition, place) &&
+            this.uiService.button === ButtonState.Arc
+        ) {
+            const newArc: Arc = new Arc(this.startTransition, place, 1);
+            this.startTransition.appendPostArc(newArc);
+            this.dataService.getArcs().push(newArc);
         }
     }
 
@@ -477,16 +490,16 @@ export class PetriNetComponent {
     }
 
     dispatchPlaceMouseUp(event: MouseEvent, place: Place) {
-        // Draw Arc with Place as EndNode
-        if (
-            this.startTransition &&
-            !this.isArcExisting(this.startTransition, place) &&
-            this.uiService.button === ButtonState.Arc
-        ) {
-            const newArc: Arc = new Arc(this.startTransition, place, 1);
-            this.startTransition.appendPostArc(newArc);
-            this.dataService.getArcs().push(newArc);
-        }
+        // // Draw Arc with Place as EndNode
+        // if (
+        //     this.startTransition &&
+        //     !this.isArcExisting(this.startTransition, place) &&
+        //     this.uiService.button === ButtonState.Arc
+        // ) {
+        //     const newArc: Arc = new Arc(this.startTransition, place, 1);
+        //     this.startTransition.appendPostArc(newArc);
+        //     this.dataService.getArcs().push(newArc);
+        // }
     }
 
     // Transitions
@@ -525,10 +538,12 @@ export class PetriNetComponent {
 
         // Set StartNode for Arc
         if (this.uiService.button === ButtonState.Arc &&
-            !this.startTransition) {
+            !this.startTransition &&
+            !this.startPlace) {
             this.startTransition = transition;
             this.dummyArc?.points.push(transition.position);
             this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
+            event.stopPropagation();
         }
     }
 
