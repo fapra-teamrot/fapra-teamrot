@@ -1,18 +1,21 @@
 import { Injectable } from '@angular/core';
 import { ButtonState, TabState } from '../tr-enums/ui-state';
-import { Observable, of } from "rxjs";
+import { Observable, BehaviorSubject } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
 })
 export class UiService {
+    constructor() {}
+
     // stores the active tab
-    // starting value is "TabState.Build", meaning we always start on the build tab
-    tab: TabState = TabState.Build;
+    private _tab = new BehaviorSubject<TabState>(TabState.Build);
+    tab$ = this._tab.asObservable();
 
     // stores the active button inside the build tab
     // default is empty
-    button: ButtonState | null = null;
+    private _button = new BehaviorSubject<ButtonState | null>(null);
+    button$ = this._button.asObservable();
 
     // Indicates, when the user switches between tabs.
     // When the user switches tabs, this variable is set to true for
@@ -23,9 +26,19 @@ export class UiService {
     // instantaneously.
     tabTransitioning: boolean = false;
 
-    getButtonObservable() : Observable<ButtonState | null> {
-        return of(this.button);
+    set tab(value: TabState) {
+        this._tab.next(value);
     }
 
-    constructor() {}
+    get tab(): TabState {
+        return this._tab.getValue();
+    }
+
+    set button(value: ButtonState | null) {
+        this._button.next(value);
+    }
+
+    get button(): ButtonState | null {
+        return this._button.getValue();
+    }
 }

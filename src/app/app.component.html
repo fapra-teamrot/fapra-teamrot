@@ -13,13 +13,12 @@
 
     <!-- button bar and layout switch -->
     <div fxLayout="row" fxLayoutAlign="space-between end">
-        <app-button-bar fxFlex (eventName)="updateButtonState($event)"></app-button-bar>
+        <app-button-bar fxFlex></app-button-bar>
     </div>
 
     <!-- petri net component -->
     <app-petri-net
         class="padding full-size"
-        [buttonState]="buttonState"
         (fileContent)="processSourceChange($event)"
     ></app-petri-net>
 

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { ParserService } from 'src/app/tr-services/parser.service';
 import { catchError, of, take } from 'rxjs';
 import { FileReaderService } from '../../services/file-reader.service';
@@ -42,9 +42,8 @@ import { DummyArc } from 'src/app/tr-classes/petri-net/dummyArc';
     templateUrl: './petri-net.component.html',
     styleUrls: ['./petri-net.component.css'],
 })
-export class PetriNetComponent implements OnChanges{
+export class PetriNetComponent {
     @Output('fileContent') fileContent: EventEmitter<string>;
-    @Input() buttonState : ButtonState | undefined;
 
     lastNode: Node | null = null;
     nextNode: Node | null = null;
@@ -80,6 +79,12 @@ export class PetriNetComponent implements OnChanges{
         //     this.dataService.arcs = arcs;
         // });
         this.fileContent = new EventEmitter<string>();
+
+        this.uiService.button$.subscribe((buttonState) => {
+            if (buttonState !== ButtonState.Blitz && this.lastNode) {
+                this.lastNode = null;
+            }
+        });
     }
 
     startTransition: Transition | undefined;
@@ -183,7 +188,7 @@ export class PetriNetComponent implements OnChanges{
     }
 
     protected onWheelEventTransition(e: WheelEvent, transition: Transition) {
-        if(this.uiService.button === ButtonState.Blitz) {
+        if (this.uiService.button === ButtonState.Blitz) {
             e.preventDefault();
             e.stopPropagation();
             if (e.deltaY < 0) {
@@ -191,7 +196,6 @@ export class PetriNetComponent implements OnChanges{
             } else {
                 transition.label = this.getLastLabel(transition.label);
             }
-
         }
     }
 
@@ -386,7 +390,12 @@ export class PetriNetComponent implements OnChanges{
             this.uiService.button === ButtonState.Arc &&
             this.dummyArc.points.length === 1
         ) {
-            this.dummyArc.points.push(this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea));
+            this.dummyArc.points.push(
+                this.svgCoordinatesService.getRelativeEventCoords(
+                    event,
+                    drawingArea,
+                ),
+            );
         }
     }
 
@@ -407,9 +416,16 @@ export class PetriNetComponent implements OnChanges{
                 );
             }
         }
-        if (this.uiService.button === ButtonState.Arc && this.dummyArc?.points.length > 0) {
+        if (
+            this.uiService.button === ButtonState.Arc &&
+            this.dummyArc?.points.length > 0
+        ) {
             // Drawing the drag & drop DummyArc
-            this.dummyArc.points[1] = this.svgCoordinatesService.getRelativeEventCoords(event, drawingArea);
+            this.dummyArc.points[1] =
+                this.svgCoordinatesService.getRelativeEventCoords(
+                    event,
+                    drawingArea,
+                );
         }
     }
 
@@ -438,7 +454,7 @@ export class PetriNetComponent implements OnChanges{
 
     // Places
     dispatchPlaceClick(event: MouseEvent, place: Place) {
-       if (this.uiService.button === ButtonState.Add) {
+        if (this.uiService.button === ButtonState.Add) {
             place.token++;
         }
 
@@ -455,7 +471,7 @@ export class PetriNetComponent implements OnChanges{
 
     dispatchPlaceMouseDown(event: MouseEvent, place: Place) {
         if (this.uiService.button === ButtonState.Blitz) {
-            if(event.button == MouseConstants.Right_Click) {
+            if (event.button == MouseConstants.Right_Click) {
                 this.dataService.removePlace(place);
             } else if (event.button == MouseConstants.Left_Click) {
                 //Existing Transition is selected as the next Node. Method is called before dispatchSVGClick
@@ -510,9 +526,8 @@ export class PetriNetComponent implements OnChanges{
     }
 
     dispatchTransitionMouseDown(event: MouseEvent, transition: Transition) {
-
         if (this.uiService.button === ButtonState.Blitz) {
-            if(event.button == MouseConstants.Right_Click) {
+            if (event.button == MouseConstants.Right_Click) {
                 this.dataService.removeTransition(transition);
             } else if (event.button == MouseConstants.Left_Click) {
                 //Existing Transition is selected as the next Node. Method is called before dispatchSVGClick
@@ -589,8 +604,11 @@ export class PetriNetComponent implements OnChanges{
         arc: Arc,
         drawingArea: HTMLElement,
     ) {
-        if (this.uiService.button === ButtonState.Blitz && event.button == MouseConstants.Right_Click) {
-                this.dataService.removeArc(arc);
+        if (
+            this.uiService.button === ButtonState.Blitz &&
+            event.button == MouseConstants.Right_Click
+        ) {
+            this.dataService.removeArc(arc);
         }
     }
 
@@ -742,10 +760,10 @@ export class PetriNetComponent implements OnChanges{
         const actions = this.dataService.getActions();
         if (label) {
             const labelIndex = actions.indexOf(label);
-            if (labelIndex -1 === actions.length) {
+            if (labelIndex - 1 === actions.length) {
                 return;
             } else {
-                return actions [labelIndex + 1];
+                return actions[labelIndex + 1];
             }
         } else {
             if (actions.length > 0) {
@@ -762,29 +780,17 @@ export class PetriNetComponent implements OnChanges{
             const labelIndex = actions.indexOf(label);
             if (labelIndex === 0) {
                 return;
-            } else  {
-                return actions [labelIndex - 1];
+            } else {
+                return actions[labelIndex - 1];
             }
         } else {
             if (actions.length > 0) {
-                return actions[actions.length-1];
+                return actions[actions.length - 1];
             } else {
                 return;
             }
         }
-
-
     }
-
-    ngOnChanges(changes: SimpleChanges): void {
-        if(this.buttonState !== ButtonState.Blitz) {
-            this.lastNode = null;
-        }
-    }
-
-
-
-
 
     protected readonly radius = radius;
     protected readonly placeIdYOffset = placeIdYOffset;
