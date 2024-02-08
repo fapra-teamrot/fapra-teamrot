@@ -8,7 +8,7 @@ import { LayeredGraph } from 'src/app/tr-services/sugyiama/types';
 import { CycleRemovalService } from './sugyiama/cycle-removal.service';
 import { LayerAssignmentService } from './sugyiama/layer-assignment.service';
 import { VertexOrderingService } from './sugyiama/vertex-ordering.service';
-import { CoordinateAssignmentService } from './sugyiama/coordinate-assignment.service';
+import { CoordinateAssignmentService } from './sugyiama/coordinate-assignment-b-and-k.service';
 
 @Injectable({
     providedIn: 'root',
@@ -77,10 +77,15 @@ export class LayoutSugyiamaService {
         this.dataService.arcs = this._arcs;
 
         // Sugyiama Step 4: coordinate assignment
+        // const coordinateAssignmentService = new CoordinateAssignmentService(
+        //     layers,
+        //     this._arcs,
+        //     this._nodes,
+        // );
         const coordinateAssignmentService = new CoordinateAssignmentService(
             layers,
             this._arcs,
-            this._nodes,
+            this._nodes
         );
         coordinateAssignmentService.assignCoordinates();
     }
