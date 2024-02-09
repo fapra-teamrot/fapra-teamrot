@@ -53,8 +53,8 @@ export default {
                 '^[^,]*$': {
                     type: 'object',
                     properties: {
-                        x: { type: 'number' },
-                        y: { type: 'number' },
+                        x: { type: ['number', 'null'] },
+                        y: { type: ['number', 'null'] },
                     },
                     required: ['x', 'y'],
                 },
@@ -66,8 +66,8 @@ export default {
         coordinates: {
             type: 'object',
             properties: {
-                x: { type: 'number' },
-                y: { type: 'number' },
+                x: { type: ['number', 'null'] },
+                y: { type: ['number', 'null'] },
             },
             required: ['x', 'y'],
         },
