@@ -183,32 +183,32 @@ export class DataService {
     }
 
     hasElementsWithoutPosition(): boolean {
-        // [].some search function will return true if
-        // any node is found that has either no x or no y position
-        return [...this.getTransitions(), ...this.getPlaces()].some(
-            (node: Node) => {
-                return (
-                    (!node.position.x && node.position.x !== 0) ||
-                    (!node.position.y && node.position.y !== 0)
-                );
-            },
-        );
+        // search function will return any nodesfound that have both no x or no y position
+        // => then we likely have imported a petrinet with no layout data and will use sugiyama layout
+        const nullPositionNodes = [
+            ...this.getTransitions(),
+            ...this.getPlaces(),
+        ].filter((node: Node) => {
+            return !node.position.x && !node.position.y;
+        });
+
+        return nullPositionNodes.length > 1;
     }
 
     isConnectionPossible(startNode: Node, endNode: Node): boolean {
-        if(startNode instanceof Transition && endNode instanceof Transition) {
+        if (startNode instanceof Transition && endNode instanceof Transition) {
             return false;
         }
-        if(startNode instanceof Place && endNode instanceof Place) {
+        if (startNode instanceof Place && endNode instanceof Place) {
             return false;
         }
-        if(startNode instanceof Transition && endNode instanceof Place) {
+        if (startNode instanceof Transition && endNode instanceof Place) {
             const amountOfConnections = startNode.postArcs.filter((arc) => {
                 return arc.to === endNode;
             }).length;
             return amountOfConnections === 0;
         }
-        if(startNode instanceof Place && endNode instanceof Transition) {
+        if (startNode instanceof Place && endNode instanceof Transition) {
             const amountOfConnections = endNode.preArcs.filter((arc) => {
                 return arc.from === startNode;
             }).length;
